@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="Root" style="width:100%; height:100%;">
+    <!-- Top-left: Health -->
+    <ui:VisualElement name="TopLeft" style="position:absolute; left:16px; top:16px; flex-direction:column; gap:6px;">
+      <ui:Label name="HealthLabel" text="Health" />
+      <ui:ProgressBar name="HealthBar" title="Health" high-value="100" value="100" style="width:240px;"/>
+    </ui:VisualElement>
+
+    <!-- Top-right: Ammo -->
+    <ui:VisualElement name="TopRight" style="position:absolute; right:16px; top:16px; flex-direction:column; align-items:flex-end; gap:6px;">
+      <ui:Label name="WeaponLabel" text="Pistol"/>
+      <ui:Label name="AmmoLabel" text="12 / 48"/>
+    </ui:VisualElement>
+
+    <!-- Center: Crosshair -->
+    <ui:Label name="Crosshair" text="+" style="position:absolute; left:50%; top:50%; translate:-50% -50%; font-size:24px;"/>
+  </ui:VisualElement>
+</ui:UXML>
