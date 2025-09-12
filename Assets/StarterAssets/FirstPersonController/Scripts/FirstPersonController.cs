@@ -2,6 +2,7 @@
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
+using UnityEngine.UIElements;
 
 namespace StarterAssets
 {
@@ -9,8 +10,21 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM
     [RequireComponent(typeof(PlayerInput))]
 #endif
+    [RequireComponent(typeof(UIDocument))]
     public class FirstPersonController : MonoBehaviour
     {
+
+
+
+        // -------- HUD / UI --------
+        [Header("HUD / UI")]
+        public PlayerStats player;               // Assign in Inspector (falls back to GetComponent)
+        private UIDocument _uiDoc;
+        private ProgressBar _healthBar;
+        private Label _ammoLabel;
+        private Label _weaponLabel;
+
+        // -------- Player movement --------
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 4.0f;
@@ -92,6 +106,9 @@ namespace StarterAssets
             }
         }
 
+         // ---------------- Unity lifecycle ----------------
+
+
         private void Awake()
         {
             // get a reference to our main camera
@@ -114,6 +131,44 @@ namespace StarterAssets
             // reset our timeouts on start
             _jumpTimeoutDelta = JumpTimeout;
             _fallTimeoutDelta = FallTimeout;
+
+                        if (!player) player = GetComponent<PlayerStats>();
+
+            // UI hookup (do this in Start so UIDocument is ready)
+            _uiDoc = GetComponent<UIDocument>();
+            if (_uiDoc != null)
+            {
+                var root = _uiDoc.rootVisualElement;
+                _healthBar = root.Q<ProgressBar>("HealthBar");
+                _ammoLabel = root.Q<Label>("AmmoLabel");
+                _weaponLabel = root.Q<Label>("WeaponLabel");
+            }
+
+            // Subscribe + initialize HUD
+            if (player != null)
+            {
+                player.OnHealthChanged += UpdateHealth;
+                player.OnAmmoChanged += UpdateAmmo;
+                player.OnWeaponChanged += UpdateWeapon;
+
+                UpdateHealth(player.Health, player.maxHealth);
+                UpdateAmmo(player.AmmoInMag, player.AmmoReserve);
+                UpdateWeapon(player.WeaponName);
+            }
+            else
+            {
+                Debug.LogWarning("FirstPersonController: No PlayerStats found/assigned.");
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (player != null)
+            {
+                player.OnHealthChanged -= UpdateHealth;
+                player.OnAmmoChanged -= UpdateAmmo;
+                player.OnWeaponChanged -= UpdateWeapon;
+            }
         }
 
         private void Update()
@@ -127,6 +182,31 @@ namespace StarterAssets
         {
             CameraRotation();
         }
+
+        // ---------------- HUD callbacks ----------------
+
+        private void UpdateHealth(int current, int max)
+        {
+            if (_healthBar == null) return;
+            _healthBar.highValue = max;
+            _healthBar.value = current;
+            _healthBar.title = $"Health {current}/{max}";
+        }
+
+        private void UpdateAmmo(int mag, int reserve)
+        {
+            if (_ammoLabel == null) return;
+            _ammoLabel.text = $"{mag} / {reserve}";
+        }
+
+        private void UpdateWeapon(string name)
+        {
+            if (_weaponLabel == null) return;
+            _weaponLabel.text = name;
+        }
+
+        // ---------------- Movement / camera ----------------
+
 
         private void GroundedCheck()
         {
